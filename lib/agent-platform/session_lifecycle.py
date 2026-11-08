@@ -439,7 +439,7 @@ def start(name: str, directory: str | None = None,
     `--kill`) greys on Deck's rail, which is correct — it has no agent — and its
     Start button then failed forever with "already exists". Deck swallows that
     message as an expected race, so the click reported nothing at all. Observed
-    on the `ask` session, 2026-07-24.
+    on the walled-off crew's own session, 2026-07-24.
 
     So the refusal is now on the agent, not on the session: an existing session
     with a live agent is refused, and one sitting at a bare shell has the command

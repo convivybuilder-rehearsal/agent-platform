@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""queue-sync — rebuild an overnight queue's Completed section from live GitHub state.
+"""queue-sync — rebuild a product queue's Completed section from live GitHub state.
 
 WHERE THE QUEUES LIVE (ARCH-390). `<root>/substrate/queues/<product>.md`, beside
 backlog.md, which is the same kind of object. They were in the provenance-gated KB,
@@ -15,7 +15,7 @@ WHY THIS EXISTS (ARCH-388). The queue doc's own editing contract said:
 
 Per ARCH-020 nothing merges autonomously, so at the moment the orchestrator writes
 that entry the PR is BY DEFINITION not merged. "Completed" was therefore guaranteed
-to accumulate unmerged work, and it did: on 2026-07-21 the constance queue carried
+to accumulate unmerged work, and it did: on 2026-07-21 one product's queue carried
 two entries reading "Landed as #526" and "Landed as #527" when #526 had been closed
 as superseded and #527 was still open. Both sat under Completed, so the next drain
 would have skipped them as finished.
@@ -25,7 +25,7 @@ GitHub's fact, and a doc that restates it as prose is a copy that starts driftin
 the moment it is written. This regenerates the section from the source instead.
 
 RECONCILER, NOT LISTER — the correction that matters. The obvious build ("regenerate
-Completed from merged PRs") is wrong, and testing said so immediately: constance had
+Completed from merged PRs") is wrong, and testing said so immediately: one product had
 83 PRs merged in the window against ~17 queue entries. Completed tracks the QUEUE'S
 items that landed, not everything the repo merged, so a bulk listing would bury the
 queue's own history under unrelated work.
@@ -77,17 +77,17 @@ PR_HASH_RE = re.compile(r"(?<![\w/])#(\d+)")
 # Bounded to a single line ON PURPOSE. A greedy DOTALL match would swallow the
 # indented sub-bullets that carry an item's follow-up notes.
 #
-# TWO TAIL DIALECTS, because the queues disagree (reviewer, #193). constance writes
-# "Landed as <url>"; vivy writes "→ <url>" and never uses the word at all — 45
-# entries to nil. Matching only the constance form left every rebuilt vivy entry
-# carrying its old PR reference AND an appended new one.
+# TWO TAIL DIALECTS, because the queues disagree (reviewer, #193). One product's
+# queue writes "Landed as <url>"; another's writes "→ <url>" and never uses the
+# word at all — 45 entries to nil. Matching only the "Landed as" form left every
+# rebuilt arrow-dialect entry carrying its old PR reference AND an appended new one.
 #
 # The arrow form is matched ONLY when the arrow is followed by a PR link, because a
 # bare arrow is ordinary prose in these titles ("logType 29 → `lock.code_changed`").
 # Stripping from the first arrow would have eaten the title itself.
 # BOTH DIALECTS REQUIRE A PR LINK, and the verb must sit right against "as".
-# A loose version — "merged" anywhere, "as" anywhere later — matched this real vivy
-# line mid-sentence:
+# A loose version — "merged" anywhere, "as" anywhere later — matched this real
+# line mid-sentence from one queue:
 #
 #     Already in main via PR #992 (merged 2026-07-18) which added the validator …
 #
@@ -95,8 +95,8 @@ PR_HASH_RE = re.compile(r"(?<![\w/])#(\d+)")
 # has a shape: the verb, optionally "ready-to-merge", then "as", then the link.
 _PR_LINK = r"(?:\[[^\]]*\]\()?https://github\.com/[\w-]+/[\w-]+/pull/\d+\)?"
 LANDED_RE = re.compile(
-    rf"\s*[—-]?\s*(?:(?:landed|merged)(?:\s+ready-to-merge)?\s+as\s+{_PR_LINK}"  # constance
-    rf"|→\s*{_PR_LINK})"                                                          # vivy
+    rf"\s*[—-]?\s*(?:(?:landed|merged)(?:\s+ready-to-merge)?\s+as\s+{_PR_LINK}"  # "landed as" dialect
+    rf"|→\s*{_PR_LINK})"                                                          # arrow dialect
     r"[^\n]*",
     re.I)
 
@@ -181,7 +181,7 @@ def render(pr: dict, prose: str | None) -> str:
     head = (prose or f"- **{day} — {md_escape(pr['title'])}**").rstrip()
     # Re-date a preserved bullet from the MERGE, not from what was written. The
     # authored date is the orchestrator's end-of-run belief and predates the merge:
-    # across the constance queue it was out by up to six days, because the operator merges in
+    # across one product's queue it was out by up to six days, because the operator merges in
     # batches days after the drain produces the PR.
     head = re.sub(r"\*\*\d{4}-\d{2}-\d{2} — ", f"**{day} — ", head, count=1)
     head = head.rstrip(" .—-")
@@ -191,7 +191,7 @@ def render(pr: dict, prose: str | None) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("product", help="product name, e.g. constance")
+    ap.add_argument("product", help="product name, e.g. acme")
     ap.add_argument("--repo", help="repo dir name under the machine's root (defaults to product)")
     ap.add_argument("--write", action="store_true",
                     help="rewrite the doc in place; default is to report only")
@@ -223,8 +223,8 @@ def main() -> int:
     #
     # THREE OUTCOMES, AND THE THIRD IS THE SAFETY PROPERTY. A verdict of MERGED or
     # CLOSED/OPEN is GitHub answering the question. UNKNOWN means the question could
-    # not be asked — the number is an ISSUE rather than a PR (`#424 (triage)` in the
-    # constance queue), the API failed, the ref is from another repo — and an
+    # not be asked — the number is an ISSUE rather than a PR (`#424 (triage)` in
+    # one product's queue), the API failed, the ref is from another repo — and an
     # unverifiable entry must be KEPT VERBATIM, never removed. Treating "could not
     # check" as "did not land" would have this tool silently delete real history,
     # which is a worse failure than the drift it was written to fix.
@@ -245,7 +245,7 @@ def main() -> int:
         elif pr["state"] == "OPEN":
             # IN FLIGHT — the work exists and is waiting on a human merge. Earlier this
             # was lumped with CLOSED and simply deleted, which is the wrong repair: it
-            # removed five real vivy items from the queue entirely, leaving them in
+            # removed five real items from one product's queue entirely, leaving them in
             # neither Completed nor pending. The queue is how this work is tracked, so
             # losing the entry is worse than the misfiling it was correcting.
             #
@@ -262,7 +262,7 @@ def main() -> int:
     # Age out anything past the window — the section is titled "last 30 days" and its
     # contract says to trim monthly. Every dropped entry is NAMED below rather than
     # counted: a tool that quietly deletes history reads as "nothing to see" at exactly
-    # the moment someone should look. sous-chef's whole section is past the window, so
+    # the moment someone should look. One product's whole section was once past the window, so
     # this is a real deletion, not a hypothetical one.
     fresh, aged_out = [], []
     for pr, prose in kept:
@@ -360,7 +360,7 @@ def main() -> int:
         # what else is dirty in the tree ("nothing to commit, working tree clean", "no
         # changes added to commit", "nothing added to commit but untracked files
         # present"), and the messages are localizable besides. Matching on one of them
-        # is what made the 06:00 backstop report `constance: FAILED (exit 1)` on an
+        # is what made the 06:00 backstop report one product `FAILED (exit 1)` on an
         # already-current queue on 2026-07-23 — a false alarm in the one log an
         # unattended overnight has to be able to trust. An exit code cannot be reworded.
         #

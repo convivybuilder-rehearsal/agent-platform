@@ -3,7 +3,7 @@
 (ARCH-309). The spurious-work / warrant dimension, sibling to model-scorecard
 (does it work?) and security-scorecard (is it safe?).
 
-The failure it measures (vivy #764, 2026-07-03): an agent spun a plausible-but-
+The failure it measures (a product repo's #764, 2026-07-03): an agent spun a plausible-but-
 false narrative from data it saw, decided the app "needed" an enhancement, built
 it, and it rode through a merged PR — the code was fine, but the CHANGE SHOULD NOT
 HAVE EXISTED. Such a PR scores POSITIVELY on every other axis (merged, survives 7d,

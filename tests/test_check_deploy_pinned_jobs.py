@@ -255,10 +255,10 @@ def test_a_clean_deploy_pinned_job_is_not_a_breach(cdpj, tmp_path):
 
 
 def test_non_absolute_argv_entries_are_not_paths(cdpj, tmp_path):
-    """Flags and bare values (`--days`, `14`, `hollis`) are not file paths and
-    must never be realpath-resolved against the cwd and reported as breaches."""
-    argv = ["--repo-scorecard", "hollis", "--days", "14"]
-    assert cdpj.classify("com.convivy.model-scorecard-hollis", argv,
+    """Flags and bare values (`--days`, `14`) are not file paths and must
+    never be realpath-resolved against the cwd and reported as breaches."""
+    argv = ["--days", "14"]
+    assert cdpj.classify("com.convivy.model-scorecard", argv,
                          checkout_root=str(tmp_path / "agent-platform")) == []
 
 

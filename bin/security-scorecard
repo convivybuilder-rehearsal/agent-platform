@@ -60,7 +60,7 @@ REPORT_PATH = RUNS_ROOT / "scorecard" / "security-report.json"  # the rollup ori
 # (the time series); the report is the trailing-window view the dashboard shows.
 REPORT_WINDOW_DAYS = 30
 
-SECURITY_AGENTS = {"security-reviewer", "hollis-security-reviewer"}
+SECURITY_REVIEW_ROLE = "security-reviewer"
 
 # A finding line in the ARCH-033 format leads with a bolded severity+category tag:
 #   - **Blocking — substance:** <attack vector> — `file:line`
@@ -154,10 +154,10 @@ def _authentic_security_stamp(stamp, pr) -> bool:
     comment. Counting that as a genuine clean round would understate the vuln rate,
     so — like the merge gate — the harvester trusts a stamp only when its run-id
     resolves to a review-class run for the same repo/commit (ARCH-193)."""
-    if not stamp or stamp.agent not in SECURITY_AGENTS:
+    if not stamp or not RP.is_review_class(stamp.agent, (SECURITY_REVIEW_ROLE,)):
         return False
     return RP.authenticate(stamp, _resolve_run_facts(stamp.run_id), pr=str(pr),
-                           review_agents=tuple(SECURITY_AGENTS)) is None
+                           review_agents=(SECURITY_REVIEW_ROLE,)) is None
 
 
 def _count_findings(body: str) -> tuple[int, int]:

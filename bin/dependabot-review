@@ -4,8 +4,8 @@ morning decision is one paragraph rather than a dozen tabs.
 
 WHY THIS EXISTS.
 
-Measured 2026-07-30: 73 dependabot PRs merged across vivy, constance and
-sous-chef in 30 days. The operator's account of the cost was that dependabot plus nightly
+Measured 2026-07-30: 73 dependabot PRs merged across the product repos
+in 30 days. The operator's account of the cost was that dependabot plus nightly
 bugs plus issues consumed roughly the first ten hours of his day, leaving a thin
 window for product work.
 
@@ -18,7 +18,7 @@ WHAT IT DOES NOT DO, and why.
 
 It does NOT merge. Auto-merge was considered and dropped: the required-status-
 check sets on these repos are far thinner than the checks that actually run
-(constance requires none at all), so "merge when required CI is green" would
+(one product requires none at all), so "merge when required CI is green" would
 have merged on almost nothing. Fixing that means restructuring branch protection,
 which the operator declined for products with no users. See signal
 branch-protection-required-checks-thin-2026-07-30. So the human merge click
@@ -60,7 +60,7 @@ and a weekly PR would otherwise be re-reviewed six times for nothing.
 
 Usage:
     dependabot-review                  # every dispatchable repo
-    dependabot-review --repo vivy      # one repo
+    dependabot-review --repo acme      # one repo
     dependabot-review --dry-run        # classify and print, dispatch nothing
 """
 from __future__ import annotations
@@ -329,9 +329,9 @@ def ci_state(repo: str, number: int) -> str:
     PENDING IS THE ONE THAT MUST NOT BE REVIEWED. A reviewer dispatched against
     unfinished CI is required by the machine-global rule to return
     REQUEST_CHANGES citing only "CI still in progress", so the round is spent
-    learning nothing. Observed the first night this ran: 3 of 4 vivy PRs came
-    back REQUEST_CHANGES with no substantive finding, purely because vivy's
-    serial gate had not landed. They are skipped and picked up on the next pass,
+    learning nothing. Observed the first night this ran: 3 of 4 PRs on one
+    product came back REQUEST_CHANGES with no substantive finding, purely
+    because that product's serial gate had not landed. They are skipped and picked up on the next pass,
     which is at most three hours away.
 
     RED IS REVIEWED, deliberately, and this is not a concession. On that same

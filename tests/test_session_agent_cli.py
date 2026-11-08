@@ -209,7 +209,7 @@ def test_create_dir_flag_reaches_session_lifecycle_start(session_agent_cli, monk
                          lambda *a, **kw: calls.append(kw) or {"ok": True})
     monkeypatch.setattr(session_agent_cli, "_emit", lambda obj: None)
     monkeypatch.setattr(session_agent_cli.sys, "argv",
-                         ["session-agent", "start", "nyh", "--dir", "/tmp/x",
+                         ["session-agent", "start", "oak", "--dir", "/tmp/x",
                           "--create-dir"])
 
     rc = session_agent_cli.main()
@@ -224,7 +224,7 @@ def test_without_the_flag_create_dir_defaults_false(session_agent_cli, monkeypat
                          lambda *a, **kw: calls.append(kw) or {"ok": True})
     monkeypatch.setattr(session_agent_cli, "_emit", lambda obj: None)
     monkeypatch.setattr(session_agent_cli.sys, "argv",
-                         ["session-agent", "start", "nyh", "--dir", "/tmp/x"])
+                         ["session-agent", "start", "oak", "--dir", "/tmp/x"])
 
     session_agent_cli.main()
 
@@ -327,13 +327,13 @@ def test_crews_emits_the_envelope_the_module_builds(session_agent_cli, emitted, 
     as `sessions` and `crews-root`; the CLI's only job is to emit what
     session_crews.crews() returns, once, as the envelope Deck decodes."""
     monkeypatch.setattr(session_agent_cli.SCR, "crews",
-                        lambda: {"crews": [{"id": "placard"}]})
+                        lambda: {"crews": [{"id": "signpost"}]})
     monkeypatch.setattr(session_agent_cli.sys, "argv", ["session-agent", "crews"])
 
     rc = session_agent_cli.main()
 
     assert rc == 0
-    assert emitted == [{"crews": [{"id": "placard"}]}]
+    assert emitted == [{"crews": [{"id": "signpost"}]}]
 
 
 # MARK: - `documents`

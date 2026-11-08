@@ -206,6 +206,7 @@ git -C "$REPO" archive "$SHA" -- \
     lib/agent-platform/agent_policy.py \
     lib/agent-platform/telemetry.py \
     lib/agent-platform/review_protocol.py \
+    lib/agent-platform/app_prefixes.py \
     lib/agent-platform/fetched_documents.py \
     lib/agent-platform/private_crew.py \
     lib/agent-platform/projects.py \

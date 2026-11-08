@@ -16,6 +16,8 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+
 
 def _git(repo: Path, *args: str) -> None:
     subprocess.run(
@@ -214,6 +216,7 @@ def test_score_on_empty_results_writes_an_empty_report(review_eval_cli, tmp_path
     assert json.loads(audit.read_text()) == {"judged_real": [], "judged_false": []}
 
 
+@pytest.mark.rich_registry
 def test_merged_head_via_gh_uses_the_registered_owner_for_homebrew_tap(
         review_eval_cli, monkeypatch):
     """Round-1 review (PR #881, comment 6150937461): `_merged_head_via_gh`
@@ -221,7 +224,7 @@ def test_merged_head_via_gh_uses_the_registered_owner_for_homebrew_tap(
     same pattern the PR centralizes everywhere else, and an 8th occurrence its
     "seven sites... now share one function" claim missed. `corpus build`
     resolves a past review round's merged head through this, and a
-    homebrew-tap round would otherwise query convivy/homebrew-tap (wrong
+    brewcask-tap round would otherwise query convivy/brewcask-tap (wrong
     owner), silently dropping that round from corpus eligibility. Fails
     against a build that still reads `f"convivy/{repo}"` literally."""
     import subprocess
@@ -236,13 +239,13 @@ def test_merged_head_via_gh_uses_the_registered_owner_for_homebrew_tap(
 
     monkeypatch.setattr(review_eval_cli.subprocess, "run", fake_run)
 
-    head = review_eval_cli._merged_head_via_gh("homebrew-tap", "1")
+    head = review_eval_cli._merged_head_via_gh("brewcask-tap", "1")
 
     assert head == head_oid
     assert calls and "--repo" in calls[0]
     repo_arg = calls[0][calls[0].index("--repo") + 1]
-    assert repo_arg == "convivybuilder/homebrew-tap", (
-        f"_merged_head_via_gh must query convivybuilder/homebrew-tap, "
+    assert repo_arg == "caskforge/brewcask-tap", (
+        f"_merged_head_via_gh must query caskforge/brewcask-tap, "
         f"not {repo_arg!r}")
 
 
@@ -257,6 +260,11 @@ def test_anthropic_judge_call_routes_its_env_through_the_credential_guard(
 
     monkeypatch.setenv("GH_TOKEN", "ghp_secret")
     monkeypatch.setenv("GITHUB_TOKEN", "ghp_secret")
+    # DE.dispatch_env()'s own git-identity probe (sixth gap, its docstring) is a
+    # real `subprocess.run` call too — unmocked, it would be counted as a second
+    # call below, against `fake_run`'s own `len(calls) == 1` contract. `True`
+    # matches this test's real environment.
+    monkeypatch.setattr(review_eval_cli.DE, "_git_identity_resolves", lambda env, cwd: True)
     calls = []
 
     def fake_run(argv, **kwargs):
